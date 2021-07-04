@@ -310,4 +310,353 @@ comment explains why the function has a degenerate implementation and what that 
 
 - Teams should decide on a rule for formatting
 
+## Chapter 6: Objects and Data Structures
 
+### Data Abstraction
+
+- Hiding implementation is not just a matter of putting a layer of functions between the variables. Hiding
+  implementation is about abstractions! A class does not simply push its variables out through getters and setters. Rather it exposes abstract interfaces that allow its users to manipulate the essence of the data, without having to know its implementation.
+- We do not want to expose the details of our data. Rather we want to express our data in abstract terms. This is not
+  merely accomplished by using interfaces and/or getters and setters. Serious thought needs to be put into the best way to represent the data that an object contains. The worst option is to blithely add getters and setters.
+
+### Data/Object Anti-Symmetry
+
+- Objects hide their data behind abstractions and expose functions that operate on that data. Data struc- ture expose
+  their data and have no meaningful functions.
+  
+  > Procedural code (code using data structures) makes it easy to add new functions without changing the existing data
+  >structures. OO code, on the other hand, makes it easy to add new classes without changing existing functions. 
+
+  The complement is also true:
+  
+  > Procedural code makes it hard to add new data structures because all the functions must change. OO code makes it 
+  > hard to add new functions because all the classes must change.
+  
+### Law of Demeter
+
+- The Law of Demeter says that a method f of a class C should only call the methods of these:
+    - C
+    - An object created by f
+    - An object passed as an argument to f
+    - An object held in an instance variable of C
+- Talk to friends, not to strangers.
+
+### Train Wrecks
+
+
+## Chapter 7: Error Handling
+
+### Use Exceptions Rather Than Return Codes
+
+- It is better to throw an exception when you encounter an error. The calling code is cleaner. Its logic is not 
+  obscured by error handling.
+
+### Write Your Try-Catch-Finally Statement First
+
+- In a way, try blocks are like transactions. Your catch has to leave your program in a consistent state, no matter what
+  happens in the try. For this reason it is good practice to start with a try-catch-finally statement when you are writing code that could throw exceptions. This helps you define what the user of that code should expect, no matter what goes wrong with the code that is executed in the try.
+
+### Use Unchecked Exceptions
+
+- Checked exceptions can sometimes be useful if you are writing a critical library: You must catch them. But in general
+  application development the dependency costs outweigh the benefits.
+
+### Provide Context with Exceptions
+
+- Create informative error messages and pass them along with your exceptions. Men- tion the operation that failed and
+  the type of failure. If you are logging in your application, pass along enough information to be able to log the error in your catch.
+
+### Define Exception Classes in Terms of a Caller’s Needs
+
+- wrapping third-party APIs is a best practice. When you wrap a third-party API, you minimize your dependencies upon it.
+- You can choose to move to a different library in the future without much penalty.
+- Wrapping also makes it easier to mock out third-party calls when you are testing your own code.
+
+### Define the Normal Flow
+
+- SPECIAL CASE PATTERN [Fowler]: You create a class or configure an object so that it handles a special case for you. 
+  When you do, the client code doesn’t have to deal with exceptional behavior. That behavior is encapsulated in the special case object.
+  ```
+  try {
+    MealExpenses expenses = expenseReportDAO.getMeals(employee.getID());
+    m_total += expenses.getTotal();
+  } catch(MealExpensesNotFound e) {
+    m_total += getMealPerDiem();
+  }
+  ```
+  can become better by below example -
+  ```
+  MealExpenses expenses = expenseReportDAO.getMeals(employee.getID());
+  m_total += expenses.getTotal();
+  // the Exception is handled in the DAO and getMails returns
+  // PerDiemMealExpenses if an error is thrown...
+  public class PerDiemMealExpenses implements MealExpenses {
+    public int getTotal() {
+    // return the per diem default
+    }
+  }
+  ```
+
+### Don’t Return Null
+
+- When we return null, we are essentially creating work for ourselves and foisting problems upon our callers. All it
+  takes is one missing null check to send an application spinning out of control.
+- If you are tempted to return null from a method, consider throwing an exception or returning a SPECIAL CASE object
+  instead. If you are calling a null-returning method from a third-party API, consider wrapping that method with a
+  method that either throws an exception or returns a special case object.
+
+### Don’t Pass Null
+
+- Returning null from methods is bad, but passing null into methods is worse. Unless you are working with an API which 
+  expects you to pass null, you should avoid passing null in your code whenever possible.
+
+## Boundaries
+
+- There is a natural tension between the provider of an interface and the user of an interface. Providers of third-party 
+  packages and frameworks strive for broad applicability so they can work in many environments and appeal to a wide audience. Users, on the other hand, want an interface that is focused on their particular needs. This tension can cause problems at the boundaries of our systems.
+- In JAVA Maps have a very broad interface with plenty of capabilities. Certainly this power and flexi- bility is useful, but it can also be a liability.
+  If we need a Map of Sensors we can implement it like below 
+  ```
+  // Without generics
+  Map sensors = new HashMap();
+  Sensor s = (Sensor) sensors.get(sensorId);
+  // With generics:
+  Map<Sensor> sensors = new HashMap<Sensor>();
+  Sensor s = sensors.get(sensorId);
+  ```
+  We can make it cleaner by encapsulating -
+  ```
+  public class Sensor {
+    private Map sensors = new HashMap();
+
+    public Sensor getById(String id) {
+      return (Sensor) sensor.get(id);
+    }
+  }
+  ```
+### Exploring and Learning Boundaries
+
+- Learning the third-party code is hard. Integrating the third-party code is hard too. Doing both at the same time is
+  doubly hard. What if we took a different approach? Instead of experimenting and trying out the new stuff in our production code, we could write some tests to explore our understanding of the third-party code.
+
+### Learning Tests Are Better Than Free
+
+- Learning tests verify that the third-party packages we are using work the way we expect them to.
+- Whether you need the learning provided by the learning tests or not, a clean boundary should be supported by a set of
+  outbound tests that exercise the interface the same way the production code does. Without these boundary tests to ease the migration, we might be tempted to stay with the old version longer than we should.
+
+### Using Code That Does Not Yet Exist
+
+- Sometimes you have boundaries in your system that represents things that had not been designed yet. Inteface can 
+  be used for this purpose.
+  
+### Clean Boundaries
+
+- Code at the boundaries needs clear separation and tests that define expectations. We should avoid letting too much of
+  our code know about the third-party particulars. It’s better to depend on something you control than on something 
+  you don’t control, lest it end up controlling you.
+
+
+## Chapter 9: Unit Tests
+
+### The Three Laws of TDD
+
+- **First Law** You may not write production code until you have written a failing unit test.
+- **Second Law** You may not write more of a unit test than is sufficient to fail, and not compiling is failing.
+- **Third Law** You may not write more production code than is sufficient to pass the currently failing test.
+
+### Keeping Tests Clean
+
+- Test code is just as important as production code. It is not a second-class citizen. It requires thought, design, and care. It must be kept as clean as production code.
+
+### Tests Enable the -ilities
+
+- If you don’t keep your tests clean, you will lose them. And without them, you lose the very thing that keeps your
+  production code flexible.
+- Tests enable all the -ilities, because tests enable change.
+- If your tests are dirty, then your ability to change your code is hampered, and you begin to lose the ability to
+  improve the structure of that code. The dirtier your tests, the dirtier your code becomes. Eventually you lose the tests, and your code rots.
+
+### Clean Tests
+
+- What makes a clean test? Three things. Readability, readability, and readability.
+
+  Example
+
+  Without refactor:
+
+  ```
+  public void testGetPageHieratchyAsXml() throws Exception{
+    crawler.addPage(root, PathParser.parse("PageOne"));
+    crawler.addPage(root, PathParser.parse("PageOne.ChildOne"));
+    crawler.addPage(root, PathParser.parse("PageTwo"));
+    
+    request.setResource("root");
+    request.addInput("type", "pages");
+    Responder responder = new SerializedPageResponder();
+    SimpleResponse response =(SimpleResponse) responder.makeResponse(new FitNesseContext(root), request);
+    String xml = response.getContent();
+    
+    assertEquals("text/xml", response.getContentType());
+    assertSubString("<name>PageOne</name>", xml);
+    assertSubString("<name>PageTwo</name>", xml);
+    assertSubString("<name>ChildOne</name>", xml);
+  }
+  ```
+  Refactored:
+  ```
+  public void testGetPageHierarchyAsXml() throws Exception {
+    makePages("PageOne", "PageOne.ChildOne", "PageTwo");
+  
+    submitRequest("root", "type:pages");
+  
+    assertResponseIsXML();
+    assertResponseContains("<name>PageOne</name>", "<name>PageTwo</name>", "<name>ChildOne</name>");
+  }
+  ```
+
+### Domain-Specific Testing Language
+
+- This testing API is not designed up front; rather it evolves from the continued refac- toring of test code that has
+  gotten too tainted by obfuscating detail.
+
+### A Dual Standard
+
+- There are things that you might never do in a production environment that are perfectly fine in a test environment.
+  Usually they involve issues of memory or CPU efficiency. But they never involve issues of cleanliness.
+
+### One Assert per Test
+
+- The number of asserts in a test ought to be minimized.
+
+### Single Concept per Test
+
+- The best rule is that you should minimize the number of asserts per concept and test just one concept per test 
+  function.
+
+### F.I.R.S.T.
+
+- Fast: you want to run them fequently.
+- Independent: should not depend on each other.
+- Repeatable: in any environment, in your laptop, without network...
+- Self-Validating: should have a boolean output... not a log that you have to read to know the result.
+- Timely: Write them before the production code, if you do it after maybe the production code will be hard to test.
+
+## Chapter 10: Classes
+
+### Class Organization
+
+- public static constants
+- private static variables 
+- private instance variables
+- public functions
+- private functions 
+
+### Encapsulation
+
+- Utitlity functions should be private but could be protected to be accesible by tests in the same package.
+
+### Classes Should Be Small!
+
+- As small as possible
+- With functions we count lines, with classes we count responsibilities.
+- The more ambiguous the class name, the more likely it has too many responsibilities. For example, class names
+  including weasel words like Processor or Manager or Super often hint at unfortunate aggregation of responsibilities.
+- We should also be able to write a brief description of the class in about 25 words, without using the words “if,”
+  “and,” “or,” or “but.”
+
+### The Single Responsibility Principle
+
+- Classes should have one responsibility—one reason to change.
+- A system with many small classes has no more moving parts than a system with a few large classes. There is just as
+  much to learn in the system with a few large classes. So the question is: Do you want your tools organized into toolboxes with many small drawers each containing well-defined and well-labeled components? Or do you want a few drawers that you just toss everything into?
+  
+### Cohesion
+
+- the more variables a method manipulates the more cohesive that method is to its class. A class in which each variable
+  is used by each method is maximally cohesive.
+- We would like cohesion to be high. When cohesion is high, it means that the methods and variables of the class are
+  co-dependent and hang together as a logical whole.
+
+### Maintaining Cohesion Results in Many Small Classes
+
+- When classes lose cohesion split them!
+- Breaking a large function into many smaller functions often gives us the opportunity to split several smaller classes
+  out as well
+- Write a test suit that verified the precise behavior of the first version. Then tiny little changes, one at a time 
+  to get the desired result.
+
+### Organizing for Change
+
+- Classes should be open for extension but closed for modification.
+- We want to structure our systems so that we muck with as little as possible when we update them with new or changed
+  features. In an ideal system, we incorporate new fea- tures by extending the system, not by making modifications to existing code.
+
+### Isolating from Change
+
+-  Classes should depend upon abstractions, not on concrete details.
+
+## Chapter 11: Systems
+
+### Separate Constructing a System from Using It
+
+- Software systems should separate the startup process, when the application objects are constructed and the
+  dependencies are “wired” together, from the runtime logic that takes over after startup.
+  ```
+  public Service getService() { if (service == null)
+    service = new MyServiceImpl(...); // Good enough default for most cases? return service;
+  }
+  ```
+  This is the LAZY INITIALIZATION/EVALUATION idiom, and it has several merits. We don’t incur the overhead of
+  construction unless we actually use the object, and our startup times can be faster as a result. We also ensure that null is never returned.
+
+  However, we now have a hard-coded dependency on MyServiceImpl and everything its constructor requires (which I have
+  elided). We can’t compile without resolving these dependencies, even if we never actually use an object of this type
+  at runtime!
+
+  If we are diligent about building well-formed and robust systems, we should never let little, convenient idioms lead
+  to modularity breakdown. The startup process of object con- struction and wiring is no exception. We should modularize
+  this process separately from the normal runtime logic and we should make sure that we have a global, consistent
+  strategy for resolving our major dependencies.
+
+### Separation of Main
+
+- One way to separate construction from use is simply to move all aspects of construction to main, or modules called by
+  main, and to design the rest of the system assuming that all objects have been constructed and wired up appropriately.
+
+### Dependency Injection
+
+- In the context of dependency management, an object should not take responsibility for instantiating dependencies
+  itself. Instead, it should pass this responsibility to another “authoritative” mecha- nism, thereby inverting the control.
+
+### Scaling Up
+
+- It is a myth that we can get systems “right the first time.” Instead, we should imple- ment only today’s stories, then
+  refactor and expand the system to implement new stories tomorrow. This is the essence of iterative and incremental agility. Test-driven develop- ment, refactoring, and the clean code they produce make this work at the code level.
+- Software systems are unique compared to physical systems. Their architectures can grow incrementally, if we maintain
+  the proper separation of concerns.
+
+### Optimize Decision Making
+
+- Modularity and separation of concerns make decentralized management and decision making possible. In a sufficiently
+  large system, whether it is a city or a software project, no one person can make all the decisions.
+- We all know it is best to give responsibilities to the most qualified persons. We often forget that it is also best to
+  postpone decisions until the last possible moment. This isn’t lazy or irresponsible; it lets us make informed choices
+  with the best possible information. A premature decision is a decision made with suboptimal knowledge. We will have
+  that much less customer feedback, mental reflection on the project, and experience with our implementation choices if
+  we decide too soon.
+
+### Use Standards Wisely, When They Add Demonstrable Value
+
+- Standards make it easier to reuse ideas and components, recruit people with relevant experience, encapsulate good
+  ideas, and wire components together. However, the process of creating standards can sometimes take too long for
+  industry to wait, and some standards lose touch with the real needs of the adopters they are intended to serve.
+
+### Systems Need Domain-Specific Languages
+
+- A good DSL minimizes the “communication gap” between a domain concept and the code that implements it, just as agile
+  practices optimize the communications within a team and with the project’s stakeholders. If you are implementing
+  domain logic in the same language that a domain expert uses, there is less risk that you will incorrectly trans-
+  late the domain into the implementation.
+- DSLs, when used effectively, raise the abstraction level above code idioms and design patterns. They allow the
+  developer to reveal the intent of the code at the appropriate level of abstraction.
