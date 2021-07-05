@@ -660,3 +660,447 @@ comment explains why the function has a degenerate implementation and what that 
   late the domain into the implementation.
 - DSLs, when used effectively, raise the abstraction level above code idioms and design patterns. They allow the
   developer to reveal the intent of the code at the appropriate level of abstraction.
+
+## Chapter 12: Emergence
+
+### Getting Clean via Emergent Design
+
+- According to Kent, a design is “simple” if it follows these rules:
+  - Runs all the tests
+  - Contains no duplication
+  - Expresses the intent of the programmer
+  - Minimizes the number of classes and methods
+
+### Simple Design Rule 1: Runs All the Tests
+
+- A design must produce a system that acts as intended. A system might have a perfect design on paper, but if there is
+  no simple way to verify that the system actually works as intended, then all the paper effort is questionable.
+
+### Simple Design Rules 2-4: Refactoring
+
+- Once we have tests, we are empowered to keep our code and classes clean. We do this by incrementally refactoring the
+  code. For each few lines of code we add, we pause and reflect on the new design. Did we just degrade it? If so, we
+  clean it up and run our tests to demon- strate that we haven’t broken anything. The fact that we have these tests
+  eliminates the fear that cleaning up the code will break it!
+
+### No Duplication
+
+- Duplication is the primary enemy of a well-designed system. It represents additional work, additional risk, and
+  additional unnecessary complexity.
+- Creating a clean system requires the will to eliminate duplication, even in just a few lines of code.
+
+### Expressive
+
+-  It’s easy to write code that we understand, because at the time we write it we’re deep in an understanding of the
+   problem we’re trying to solve. Other maintainers of the code aren’t going to have so deep an understanding.
+- You can express yourself by choosing good names. We want to be able to hear a class or function name and not be
+  surprised when we discover its responsibilities.
+- You can also express yourself by keeping your functions and classes small. Small classes and functions are usually
+  easy to name, easy to write, and easy to understand.
+- You can also express yourself by using standard nomenclature. Design patterns, for example, are largely about
+  communication and expressiveness. By using the standard pattern names, such as COMMAND or VISITOR, in the names of the
+  classes that imple- ment those patterns, you can succinctly describe your design to other developers.
+- Well-written unit tests are also expressive. A primary goal of tests is to act as docu- mentation by example.
+
+### Minimal Classes and Methods
+
+- Even concepts as fundamental as elimination of duplication, code expressiveness, and the SRP can be taken too far. In
+  an effort to make our classes and methods small, we might create too many tiny classes and methods. So this rule
+  suggests that we also keep our func- tion and class counts low.
+- Our goal is to keep our overall system small while we are also keeping our functions and classes small.
+
+## Chapter 13: Concurrency
+
+> Objects are abstractions of processing. Threads are abstractions of schedule.
+
+### Why Concurrency?
+
+- Concurrency is a decoupling strategy. It helps us decouple what gets done from when it gets done. In single-threaded
+  applications what and when are so strongly coupled that the state of the entire application can often be determined by looking at the stack backtrace.
+- Or consider a system that handles one user at a time and requires only one second of time per user. This system is
+  fairly responsive for a few users, but as the number of users increases, the system’s response time increases. No user
+  wants to get in line behind 150 others! We could improve the response time of this system by handling many users
+  concurrently.
+
+### Myths and Misconceptions
+
+- Concurrency always improves performance.
+- Design does not change when writing concurrent programs.
+- Understanding concurrency issues is not important when working with a container such as a Web or EJB container.
+- Here are a few more balanced sound bites regarding writing concurrent software:
+  - Concurrency incurs some overhead, both in performance as well as writing additional code.
+  - Correct concurrency is complex, even for simple problems.
+  - Concurrency bugs aren’t usually repeatable, so they are often ignored as one-offs2 instead of the true defects they
+    are.
+  - Concurrency often requires a fundamental change in design strategy.
+  
+### Concurrency Defense Principles
+
+#### Single Responsibility Principle
+
+- The SRP5 states that a given method/class/component should have a single reason to change. Concurrency design is
+  complex enough to be a reason to change in it’s own right and therefore deserves to be separated from the rest of the code.
+
+#### Dining Philosophers
+
+- Unless care- fully designed, systems that compete in this way can experience deadlock, livelock, throughput, and
+  efficiency degradation. 
+  
+## Chapter 17: Smells and Heuristics
+
+> In his wonderful book Refactoring,1 Martin Fowler identified many different “Code Smells.”
+
+### Comments
+
+#### C1: Inappropriate Information
+
+- It is inappropriate for a comment to hold information better held in a different kind of sys- tem such as your source
+  code control system, your issue tracking system, or any other record-keeping system.
+
+#### C2: Obsolete Comment
+
+- A comment that has gotten old, irrelevant, and incorrect is obsolete. Comments get old quickly. It is best not to
+  write a comment that will become obsolete.
+
+#### C3: Redundant Comment
+
+- A comment is redundant if it describes something that adequately describes itself. For
+  example: `i++; // increment i`
+  
+#### C4: Poorly Written Comment
+
+- A comment worth writing is worth writing well. If you are going to write a comment, take the time to make sure it is
+  the best comment you can write.
+
+#### C5: Commented-Out Code
+
+- When you see commented-out code, delete it!
+
+### Environment
+
+#### E1: Build Requires More Than One Step
+
+- Building a project should be a single trivial operation. You should not have to check many little pieces out from
+  source code control. You should not need a sequence of arcane com- mands or context dependent scripts in order to
+  build the individual elements.
+
+#### E2: Tests Require More Than One Step
+
+- You should be able to run all the unit tests with just one command. In the best case you can run all the tests by
+  clicking on one button in your IDE. In the worst case you should be able to issue a single simple command in a shell.
+
+### Functions
+
+#### F1: Too Many Arguments
+
+- Functions should have a small number of arguments. No argument is best, followed by one, two, and three. More than
+  three is very questionable and should be avoided with prej- udice.
+
+#### F2: Output Arguments
+
+- Output arguments are counterintuitive. Readers expect arguments to be inputs, not out- puts. If your function must
+  change the state of something, have it change the state of the object it is called on.
+
+#### F3: Flag Arguments
+
+- Boolean arguments loudly declare that the function does more than one thing. They are
+  confusing and should be eliminated.
+  
+#### F4: Dead Function
+
+- Methods that are never called should be discarded. Keeping dead code around is wasteful. Don’t be afraid to delete
+  the function. Remember, your source code control system still remembers it.
+
+### General
+
+#### G1: Multiple Languages in One Source File
+
+- The ideal is for a source file to contain one, and only one, language. Realistically, we will probably have to use
+  more than one. But we should take pains to minimize both the number and extent of extra languages in our source files.
+
+#### G2: Obvious Behavior Is Unimplemented
+
+- Following “The Principle of Least Surprise,”2 any function or class should implement the behaviors that another
+  programmer could reasonably expect.
+
+#### G3: Incorrect Behavior at the Boundaries
+
+- There is no replacement for due diligence. Every boundary condition, every corner case, every quirk and exception] 
+  represents something that can confound an elegant and intuitive algorithm. Don’t rely on your intuition. Look for 
+  every boundary condition and write a test for it.
+
+#### G4: Overridden Safeties
+
+- Turning off certain compiler warnings (or all warnings!) may help you get the build to succeed, but at the risk of
+  endless debugging sessions. Turn- ing off failing tests and telling yourself you’ll get them to pass later is as bad
+  as pretending your credit cards are free money.
+
+#### G5: Duplication
+
+- This is one of the most important rules in this book, and you should take it very seriously. Virtually every 
+  author who writes about software design mentions this rule. Dave Thomas and Andy Hunt called it the DRY3 principle
+  (Don’t Repeat Yourself).
+  
+#### G6: Code at Wrong Level of Abstraction
+
+- It is important to create abstractions that separate higher level general concepts from lower level detailed concepts.
+  For example, constants, variables, or utility functions that pertain only to the detailed implementation should not
+  be present in the base class. The base class should know noth- ing about them.
+
+#### G7: Base Classes Depending on Their Derivatives
+
+- The most common reason for partitioning concepts into base and derivative classes is so that the higher level base
+  class concepts can be independent of the lower level derivative class concepts. Therefore, when we see base classes 
+  mentioning the names of their deriva- tives, we suspect a problem. In general, base classes should know nothing about their derivatives.
+
+#### G8: Too Much Information
+
+- Hide your data. Hide your utility functions. Hide your constants and your temporaries. Don’t create classes with lots
+  of methods or lots of instance variables. Don’t create lots of protected variables and functions for your subclasses.
+  Concentrate on keeping interfaces very tight and very small. Help keep coupling low by limiting information.
+
+#### G9: Dead Code
+
+- Dead code is code that isn’t executed. You find it in the body of an if statement that checks for a condition that
+  can’t happen. You find it in the catch block of a try that never throws. You find it in little utility methods that 
+  are never called or switch/case conditions that never occur. When you find dead code, do the right thing. Give it a
+  decent burial. Delete it from the system.
+
+#### G10: Vertical Separation
+
+- Variables and function should be defined close to where they are used. Local variables should be declared just above
+  their first usage and should have a small vertical scope. We don’t want local variables declared hundreds of lines 
+  distant from their usages.
+
+#### G11: Inconsistency
+
+- If you do something a certain way, do all similar things in the same way. This goes back to the principle of least
+  surprise. Be careful with the conventions you choose, and once chosen, be careful to continue to follow them.
+
+#### G12: Clutter
+
+- Of what use is a default constructor with no implementation? All it serves to do is clutter up the code with
+  meaningless artifacts. Variables that aren’t used, functions that are never called, comments that add no information,
+  and so forth. All these things are clutter and should be removed. 
+
+#### G13: Artificial Coupling
+
+- In general an artificial coupling is a coupling between two modules that serves no direct purpose. It is a result of
+  putting a variable, constant, or function in a temporarily convenient, though inappropriate, location. This is lazy
+  and careless. These should be removed!
+  
+#### G14: Feature Envy
+
+- When a method uses accessors and mutators of some other object to manipulate the data within that object, then it
+  envies the scope of the class of that other object. It wishes that it were inside that other class so that it could
+  have direct access to the variables it is manipulating. Sometimes it's a necessary evil.
+
+#### G15: Selector Arguments
+
+- There is hardly anything more abominable than a dangling false argument at the end of a function call. What does it
+  mean? What would it change if it were true? Not only is the purpose of a selector argument difficult to remember,
+  each selector argument combines many functions into one. Selector arguments are just a lazy way to avoid splitting a
+  large function into several smaller functions.
+
+#### G16: Obscured Intent
+
+- We want code to be as expressive as possible. Run-on expressions, Hungarian notation, and magic numbers all 
+  obscure the author’s intent.
+
+#### G17: Misplaced Responsibility
+
+- The principle of least surprise comes into play here. Code should be placed where a reader would naturally expect 
+  it to be. One way to make this decision is to look at the names of the functions.
+  
+#### G18: Inappropriate Static
+
+- In general you should prefer nonstatic methods to static methods. When in doubt, make the function nonstatic. If you
+  really want a function to be static, make sure that there is no chance that you’ll want it to behave polymorphically.
+
+#### G19: Use Explanatory Variables
+
+- More explanatory variables are generally better than fewer. It is remarkable how an opaque module can suddenly become
+  transparent simply by break- ing the calculations up into well-named intermediate values.
+
+#### G20: Function Names Should Say What They Do
+
+- If you have to look at the implementation (or documentation) of the function to know what it does, then you should
+  work to find a better name or rearrange the functionality so that it can be placed in functions with better names.
+
+#### G21: Understand the Algorithm
+
+- Before you consider yourself to be done with a function, make sure you understand how it works. It is not good enough
+  that it passes all the tests. You must know10 that the solution is correct.
+
+#### G23: Prefer Polymorphism to If/Else or Switch/Case
+
+- “ONE SWITCH” rule: There may be no more than one switch state- ment for a given type of selection. The cases in that
+  switch statement must create polymor- phic objects that take the place of other such switch statements in the rest of the system.
+
+#### G24: Follow Standard Conventions
+
+- Every team should follow a coding standard based on common industry norms. This cod- ing standard should specify 
+  things like where to declare instance variables; how to name classes, methods, and variables; where to put braces; and so on.
+
+#### G25: Replace Magic Numbers with Named Constants
+
+- In general it is a bad idea to have raw numbers in your code. You should hide them behind well-named constants.
+
+#### G26: Be Precise
+
+- When you make a decision in your code, make sure you make it precisely. Know why you have made it and how you will 
+  deal with any exceptions. Don’t be lazy about the pre- cision of your decisions.
+
+#### G27: Structure over Convention
+
+- Enforce design decisions with structure over convention. Naming conventions are good, but they are inferior to
+  structures that force compliance.
+
+#### G28: Encapsulate Conditionals
+
+- Boolean logic is hard enough to understand without having to see it in the context of an if
+  or while statement. Extract functions that explain the intent of the conditional.
+  
+#### G29: Avoid Negative Conditionals
+
+- Negatives are just a bit harder to understand than positives. So, when possible, condition-
+  als should be expressed as positives.
+  
+#### G30: Functions Should Do One Thing
+
+- It is often tempting to create functions that have multiple sections that perform a series of operations. Functions
+  of this kind do more than one thing, and should be converted into many smaller functions, each of which does one thing.
+
+#### G31: Hidden Temporal Couplings
+
+- Temporal couplings are often necessary, but you should not hide the coupling. Structure the arguments of your 
+  functions such that the order in which they should be called is obvious. 
+
+#### G32: Don’t Be Arbitrary
+
+- Have a reason for the way you structure your code, and make sure that reason is communi- cated by the structure of the
+  code. If a structure appears arbitrary, others will feel empowered to change it. If a structure appears consistently
+  throughout the system, others will use it and preserve the convention.
+
+#### G33: Encapsulate Boundary Conditions
+
+- Boundary conditions are hard to keep track of. Put the processing for them in one place. Don’t let them leak all over
+  the code. We don’t want swarms of +1s and -1s scattered hither and yon. Consider this simple example from FIT:
+  ```
+  if(level + 1 < tags.length) {
+    parts = new Parse(body, tags, level + 1, offset + endTag);
+    body = null;
+  }
+  ```
+  Notice that level+1 appears twice. This is a boundary condition that should be encapsu- lated within a variable named
+  something like nextLevel.
+  ```
+  int nextLevel = level + 1;
+  if(nextLevel < tags.length) {
+    parts = new Parse(body, tags, nextLevel, offset + endTag);
+    body = null;
+  }
+  ```
+
+#### G34: Functions Should Descend Only One Level of Abstraction
+
+- The statements within a function should all be written at the same level of abstraction, which should be one level
+  below the operation described by the name of the function. This may be the hardest of these heuristics to interpret and follow.
+
+#### G35: Keep Configurable Data at High Levels
+
+- If you have a constant such as a default or configuration value that is known and expected at a high level of
+  abstraction, do not bury it in a low-level function. Expose it as an argu- ment to that low-level function called
+  from the high-level function.
+
+#### G36: Avoid Transitive Navigation
+
+- In general we don’t want a single module to know much about its collaborators. More spe- cifically, if A collaborates
+  with B, and B collaborates with C, we don’t want modules that use A to know about C. For example, we don’t want
+  a.getB().getC().doSomething();.
+
+### Names
+
+#### N1: Choose Descriptive Names
+
+- Don’t be too quick to choose a name. Make sure the name is descriptive. Remember that meanings tend to drift as 
+  software evolves, so frequently reevaluate the appropriateness of the names you choose.
+
+#### N2: Choose Names at the Appropriate Level of Abstraction
+
+- Don’t pick names that communicate implementation; choose names the reflect the level of abstraction of the class or
+  function you are working in.
+
+#### N3: Use Standard Nomenclature Where Possible
+
+- Names are easier to understand if they are based on existing convention or usage. For exam- ple, if you are using the
+  `DECORATOR` pattern, you should use the word Decorator in the names of the decorating classes. For example,
+  `AutoHangupModemDecorator` might be the name of a class that decorates a Modem with the ability to automatically hang up at the end of a session.
+
+#### N4: Unambiguous Names
+
+- Choose names that make the workings of a function or variable unambiguous.
+
+#### N5: Use Long Names for Long Scopes
+
+- The length of a name should be related to the length of the scope. You can use very short
+  variable names for tiny scopes, but for big scopes you should use longer names.
+
+#### N6: Avoid Encodings
+
+- Names should not be encoded with type or scope information. Prefixes such as m_ or f are useless in today’s
+  environments.
+
+#### N7: Names Should Describe Side-Effects
+
+- Names should describe everything that a function, variable, or class is or does. Don’t hide side effects with a name.
+  Don’t use a simple verb to describe a function that does more than just that simple action.
+
+### Tests
+
+#### T1: Insufficient Tests
+
+- A test suite should test everything that could possibly break. The tests are insufficient so long as there are
+  conditions that have not been explored by the tests or calculations that have not been validated.
+
+#### T2: Use a Coverage Tool!
+
+- Coverage tools reports gaps in your testing strategy. They make it easy to find modules, classes, and functions that
+  are insufficiently tested.
+  
+#### T3: Don’t Skip Trivial Tests
+
+- They are easy to write and their documentary value is higher than the cost to produce
+  them.
+  
+#### T4: An Ignored Test Is a Question about an Ambiguity
+
+- Sometimes we are uncertain about a behavioral detail because the requirements are unclear. We can express our question
+  about the requirements as a test that is commented out, or as a test that annotated with @Ignore. Which you choose depends upon whether the ambiguity is about something that would compile or not.
+
+#### T5: Test Boundary Conditions
+
+- Take special care to test boundary conditions. We often get the middle of an algorithm
+  right but misjudge the boundaries.
+
+#### T6: Exhaustively Test Near Bugs
+
+- Bugs tend to congregate. When you find a bug in a function, it is wise to do an exhaustive
+  test of that function. You’ll probably find that the bug was not alone.
+  
+#### T7: Patterns of Failure Are Revealing
+
+- Sometimes you can diagnose a problem by finding patterns in the way the test cases fail. This is another argument for
+  making the test cases as complete as possible. Complete test cases, ordered in a reasonable way, expose patterns.
+
+#### T8: Test Coverage Patterns Can Be Revealing
+
+- Looking at the code that is or is not executed by the passing tests gives clues to why the
+  failing tests fail.
+  
+#### T9: Tests Should Be Fast
+
+- A slow test is a test that won’t get run. When things get tight, it’s the slow tests that will be
+  dropped from the suite. So do what you must to keep your tests fast.
+
+
