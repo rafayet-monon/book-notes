@@ -2,9 +2,6 @@
 ### Rails Controllers
 #### Andrzej Krzywda
 
-
-
-
 ## Chapter 1: Rails controllers
 
 ### What is the problem with Rails controllers?
@@ -230,4 +227,122 @@
   - Use the form object in controller and view
   - Remove validations from your model which are covered by a form object
   
+
+## Chapter 5: Patterns
+
+### 4 ways to early return from a rails controller
+
+- redirect_to and return (classic)
+- extracted_method and return
+- extracted_method or return
+- extracted_method{ return }
+- extracted_method; return if performed?
+
+### Service::Input
+
+- Service Class
+  ```ruby
+  class OrderConfirmationService
+    class Input < Struct.new(:full_name, :email_address)
+    end
+    
+    def call(order_id, order_input)
+      o = Order.find(order_id)
+      o.full_name = order_input.full_name.presence or raise ArgumentError
+      o.email_address = order_input.email_address.presence or raise ArgumentError
+      o.coupon_code = order_input.coupon_code or raise ArgumentError # empty string is ok
+  
+      o.proceed_to_payment! end
+  end
+  ```
+
+- From Controller
+  ```ruby
+  class OrderConfirmationController
+    def update
+      OrderConfirmationService. new(dependencies). call(
+        params[:id],
+        OrderConfirmationService::Input.new(
+          params[:order][:full_name],
+          params[:order][:email_address]
+        )
+      )
+    end
+  end
+  ```
+
+### Validations: Contexts
+  
+  ```ruby
+  class User < ActiveRecord::Base
+    validates_length_of :slug, minimum: 3, on: :user
+    validates_length_of :slug, minimum: 1, on: :admin
+  end
+  
+  class Admin::UsersController
+    def edit
+      @user = User.find(params[:id]) if @user.save(context: :admin)
+      redirect # ... else
+      render # ... end
+    end
+  end
+  
+  ```
+
+### Validations: Objectify
+
+  ```ruby
+  SlugMustHaveAtLeastOneCharacter = ActiveModel::Validations::LengthValidator.new(
+    attributes: [:slug],
+    minimum: 1
+  )
+  
+  class UserEditedByAdminValidator < SimpleDelegator
+    include ActiveModel::Validations
+    validate SlugMustHaveAtLeastOneCharacter
+  end
+  
+  ```
+
+## Chapter 7: Related topics
+
+### Service controller communication
+
+- True/false
+- return the object created/updated
+- return a response object that contains all the data and/or errors
+- carry data through exceptions
+- controller passes callback methods
+
+### Naming Conventions
+
+- Class name
+  - RegisterUserService
+  - RegisterUserUseCase
+  - RegisterUser
+  - UserRegistrator
+  
+- Method name
+  - execute
+  - process
+  - call
+  - perform
+  - run
+  
+### The special .call method
+
+- There’s an interesting situation with the special .call method. When you have a .call method, then you can call it 
+  like this:
+
+  ```ruby
+  RegisterUser.new.call(foo, bar)
+  
+  # or
+  
+  RegisterUser.new.(foo, bar)
+  ```
+
+### Where to keep services
+
+- `app/services`
 
